@@ -1,0 +1,158 @@
+{
+    "intents": [{
+            "tag": "greeting",
+            "patterns": [
+                "Hi",
+                "Hey",
+                "Hello",
+                "Good morning",
+                "Good afternoon",
+                "Hi there",
+                "Howdy"
+            ],
+            "responses": [
+                "Hey!",
+                "What can I do for you?",
+                "Hello! How can I assist you?",
+                "Hey there! What can I help you with?",
+                "Good to see you! How may I help you?",
+                "Hiya! What brings you here?",
+                "Greetings! How can I be of service?",
+                "Hey, what's going on? Let me know if you need anything."
+            ]
+        },
+        {
+            "tag": "greeting_knowledge",
+            "patterns": [
+                "What's up?",
+                "Hey how are you doing?",
+                "How are you feeling today?",
+                "What's new?",
+                "What's going on?",
+                "How's your day going?",
+                "How have you been?",
+                "How do you do?",
+                "How's everything?"
+            ],
+            "responses": [
+                "I'm good thank you!",
+                "I'm doing great, thanks for asking!",
+                "I'm feeling fantastic today, thanks!",
+                "I'm always here and ready to help!",
+                "Everything is great on my end, how can I assist you?",
+                "Life is good, thanks for asking. What can I help you with today?",
+                "I'm doing well, thanks for checking in. How can I assist you?",
+                "I'm doing fine, thank you for asking. How can I assist you today?",
+                "I'm doing well, thank you for asking. How may I help you?",
+                "As an AI language model, I don't really have feelings, but I am functioning perfectly. How may I assist you today?",
+                "I'm always here, ready to help you. What can I do for you today?"
+            ]
+        },
+        {
+            "tag": "creator",
+            "patterns": [
+                "Who made you?",
+                "Who created you?",
+                "Who coded you?",
+                "Who developed you?",
+                "Who built you?",
+                "Who wrote your code?",
+                "Who invented you?",
+                "Who is responsible for your creation?"
+            ],
+            "responses": [
+                "My creator is Davide Sidoti, a simple guy who enjoys tech stuff!",
+                "I was created by Davide Sidoti, a passionate programmer.",
+                "My maker is Davide Sidoti, a software developer who likes to experiment with AI.",
+                "Davide Sidoti is the one who programmed me.",
+                "I was developed by Davide Sidoti, a curious tech enthusiast.",
+                "I was brought to life by Davide Sidoti, who enjoys exploring the latest technologies."
+            ]
+        },
+        {
+            "tag": "name",
+            "patterns": [
+                "What's your name?",
+                "Can you tell me your name?",
+                "How should I call you?",
+                "What do you like to be called?",
+                "What name were you given?"
+            ],
+            "responses": [
+                "My name is Nova.",
+                "You can call me Nova for short.",
+                "I go by the name Nova.",
+                "My name is simply Nova.",
+                "You can refer to me as Nova."
+            ]
+        },
+        {
+            "tag": "time",
+            "patterns": [
+                "What time is it?",
+                "Can you tell me the time?",
+                "What's the time now?",
+                "What hour is it?",
+                "Do you have the time?"
+            ],
+            "responses": []
+        },
+        {
+            "tag": "model_training",
+            "patterns": [
+                "Start training the model",
+                "Can we start the training now?",
+                "Let's begin the model training",
+                "Please train the model",
+                "Initiate the training of the model",
+                "Let's start the model training",
+                "Can you begin the training process?",
+                "Begin the model training",
+                "I want to train the model now",
+                "Let's get started with the model training",
+                "Please start the model training process",
+                "It's time to start model training"
+            ],
+            "responses": []
+        },
+        {
+            "tag": "weather_information",
+            "patterns": [
+                "What's the weather like today?",
+                "Is it going to rain today?",
+                "What's the forecast for today?",
+                "How hot is it outside?",
+                "What's the temperature today?",
+                "Do I need an umbrella today?",
+                "Is it cold outside?",
+                "What's the forecast for the week?"
+            ],
+            "responses": []
+        },
+        {
+            "tag": "bot_age",
+            "patterns": [
+                "How old are you?",
+                "What is your age?",
+                "When were you born?",
+                "Are you young or old?",
+                "How many years do you have?",
+                "How long have you been around?",
+                "What's your birth year?"
+            ],
+            "responses": []
+        },
+        {
+            "tag": "streamer_age",
+            "patterns": [
+                "How old is the streamer?",
+                "What's the age of the streamer?",
+                "When was the streamer born?",
+                "Is the streamer young or old?",
+                "How many years does the streamer have?",
+                "What's the streamer's birth year?"
+            ],
+            "responses": []
+        }
+    ]
+}
