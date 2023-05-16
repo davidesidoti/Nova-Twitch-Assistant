@@ -1,8 +1,10 @@
-import datetime
+from datetime import datetime
 import random
 import os
 import json
 from dotenv import load_dotenv
+from dateutil.parser import parse
+import re
 
 import requests
 from twitchio.ext import commands
@@ -15,9 +17,11 @@ class NovaAI:
     openWeatherAPIKey = None
     currentLatitude = None
     currentLongitude = None
-    bot_creation = None
 
+    bot_creation = None
     streamer_birthday = None
+
+    user_request = None
 
     def __init__(self) -> None:
         load_dotenv()
@@ -29,7 +33,6 @@ class NovaAI:
         self.currentLongitude = location[1]
 
         self.bot_creation = os.getenv("BOT_CREATION")
-        self.streamer_birthday = os.getenv("STREAMER_BIRTHDAY")
 
         # Initiate the model
         methods_mapping = {
@@ -37,7 +40,8 @@ class NovaAI:
             "model_training": self.model_train,
             "weather_information": self.get_weather_information,
             "bot_age": self.get_bot_age,
-            "streamer_age": self.get_streamer_age
+            "streamer_age": self.get_streamer_age,
+            "set_streamer_birthday": self.set_streamer_birthday
         }
         self.assistant = GenericAssistant(
             "./datasets/intents.json", intent_methods=methods_mapping, model_name="./models/nova_ai")
@@ -52,6 +56,9 @@ class NovaAI:
         except:
             self.assistant.train_model()
             self.assistant.save_model()
+
+    def update_user_request(self, user_request: str) -> None:
+        self.user_request = user_request
 
     def speak(self, text: str) -> None:
         """
@@ -82,18 +89,18 @@ class NovaAI:
         This Python function generates a random response with the current time included.
         """
         responses = [
-            "The time is %%.",
-            "It is currently %%.",
-            "The current time is %%.",
-            "It's approximately %%.",
-            "Let me check... the time now is %%.",
-            "I have the time, it's %%."
+            "The time is {}.",
+            "It's currently {}.",
+            "The current time is {}.",
+            "It's approximately {}.",
+            "Let me check... the time now is {}.",
+            "I have the time, it's {}."
         ]
 
         # Get the current time
-        now = datetime.datetime.now().strftime("%H:%M")
+        now = datetime.now().strftime("%H:%M")
 
-        response = random.choice(responses).replace("%%", now)
+        response = random.choice(responses).format(now)
         self.speak(response)
 
     def get_weather_information(self):
@@ -101,16 +108,16 @@ class NovaAI:
         This Python function generates a random response with the current weather information.
         """
         responses = [
-            "Let me check! In your location, the current temperature is [temperature], with [weather_description].",
-            "It looks like [weather_description] today, with temperatures around [temperature].",
-            "According to the latest forecast, it will be [weather_description] today, with temperatures in the range of [temperature].",
-            "It's [temperature] degrees outside right now, with [weather_description].",
-            "Based on the latest information, the temperature today will be [temperature], with [weather_description].",
-            "It's currently [temperature] degrees and [weather_description].",
-            "I'm seeing a forecast of [weather_description] for your location today, with temperatures around [temperature].",
-            "The temperature in your location today is expected to range from [temperature_min] to [temperature_max], with [weather_description].",
-            "According to the latest weather reports, it will be [weather_description] and [temperature] degrees in your location today.",
-            "The forecast for this week predicts [weather_description] with temperatures ranging from [temperature_min] to [temperature_max]."
+            "Let me check! At the streamer's location, the current temperature is {temperature}, with {weather_description}.",
+            "It looks like {weather_description} today, with temperatures around {temperature}.",
+            "According to the latest forecast, it will be {weather_description} today, with temperatures in the range of {temperature}.",
+            "It's {temperature} degrees outside right now, with {weather_description}.",
+            "Based on the latest information, the temperature today will be {temperature}, with {weather_description}.",
+            "It's currently {temperature} degrees and {weather_description}.",
+            "I'm seeing a forecast of {weather_description} for the streamer's location today, with temperatures around {temperature}.",
+            "The temperature in the streamer's location today is expected to range from {temperature_min} to {temperature_max}, with {weather_description}.",
+            "According to the latest weather reports, it will be {weather_description} and {temperature} degrees at the streamer's location today.",
+            "The forecast for this week predicts {weather_description} with temperatures ranging from {temperature_min} to {temperature_max}."
         ]
 
         weather_response = requests.get(
@@ -118,67 +125,114 @@ class NovaAI:
         weather_data = weather_response.json()
 
         response = random.choice(responses)
-        response = response.replace(
-            '[temperature]', str(weather_data['main']['temp']))
-        response = response.replace(
-            '[weather_description]', weather_data['weather'][0]['description'])
-        response = response.replace(
-            '[temperature_min]', str(weather_data['main']['temp_min']))
-        response = response.replace(
-            '[temperature_max]', str(weather_data['main']['temp_max']))
+        response = response.format(
+            temperature=weather_data['main']['temp'],
+            weather_description=weather_data['weather'][0]['description'],
+            temperature_min=weather_data['main']['temp_min'],
+            temperature_max=weather_data['main']['temp_max']
+        )
 
         self.speak(response)
 
+    # ANCHOR get_bot_age()
     def get_bot_age(self):
+        """
+        The function calculates the age of a chatbot and generates a random response to provide the age
+        in years, months, days, and hours.
+        """
         responses = [
-            "I was activated on $creation_date, so you could say that I am about $age old!",
-            "My programming first began in $creation_date, so I'm still a relatively young bot at around $age old!",
-            "I was created in $creation_date, so that makes me only around $age old!",
-            "I don't really have an age like humans do, but my programming was completed in $creation_date!",
-            "I'm technically ageless, but if you're asking when my programming began, that would be in $creation_date. So, I'm around $age old.",
-            "As an AI language model, age doesn't really apply to me. But my programming was started in $creation_date, so I've been around for around $age.",
-            "I was first activated in $creation_date, so if you had to put a number on it, I'd be about $age old!",
-            "My programming started in $creation_date, so you could say that I'm relatively new to the chatbot scene at around $age old."
+            "I was activated on {0}, so you could say that I am about {1} old!",
+            "My programming first began in {0}, so I'm still a relatively young bot at around {1} old!",
+            "I was created in {0}, so that makes me only around {1} old!",
+            "I'm technically ageless, but if you're asking when my programming began, that would be in {0}. So, I'm around {1} old.",
+            "As an AI language model, age doesn't really apply to me. But my programming was started in {0}, so I've been around for around {1}.",
+            "I was first activated in {0}, so if you had to put a number on it, I'd be about {1} old!",
+            "My programming started in {0}, so you could say that I'm relatively new to the chatbot scene at around {1} old."
         ]
-
-        response = random.choice(responses)
-        response = response.replace('$creation_date', self.bot_creation)
-
-        creation_date = datetime.datetime.strptime(
-            self.bot_creation, '%Y-%m-%d')
-        now = datetime.datetime.now()
-
-        delta = now - creation_date
-
-        years = delta.days // 365
-        months = delta.days // 30
-        days = delta.days % 365
-        hours = delta.seconds // 3600
-
-        response = response.replace(
-            '$age', f"{years} years, {months} months, {days} days and {hours} hours")
+        random_phrase = random.choice(responses)
+        bot_creation_date = datetime.strptime(self.bot_creation, '%Y-%m-%d')
+        time_difference = datetime.now() - bot_creation_date
+        years = int(time_difference.days / 365)
+        months = int(time_difference.days / 30 % 12)
+        days = time_difference.days % 30
+        hours = time_difference.seconds // 3600
+        bot_age = f"{years} years, {months} months, {days} days and {hours} hours"
+        response = random_phrase.format(self.bot_creation, bot_age)
         self.speak(response)
 
+    # ANCHOR get_streamer_age()
     def get_streamer_age(self):
+        """
+        The function `get_streamer_age()` calculates the age of a streamer based on their birthdate and
+        returns a random response with the age information.
+        """
         responses = [
-            "The streamer is currently $age years old.",
-            "According to public records, the streamer was born in $year, making them $age years old.",
-            "The streamer's birth year is $year, so they must be $age years old.",
-            "Well, technically speaking, the streamer was born on $birthday, so he is $age years old.",
-            "I think the streamer is $age years old!",
-            "As far as I know, the streamer is $age years young and going strong!"
+            "The streamer is currently {age} years old.",
+            "According to public records, the streamer was born in {year}, making them {age} years old.",
+            "The streamer's birth year is {year}, so they must be {age} years old.",
+            "Well, technically speaking, the streamer was born on {birthday}, so he is {age} years old.",
+            "I think the streamer is {age} years old!",
+            "As far as I know, the streamer is {age} years young and going strong!"
         ]
-
-        response = random.choice(responses)
-        _streamer_birthday = datetime.datetime.strptime(
-            self.streamer_birthday, '%Y-%m-%d')
-        _streamer_age = datetime.datetime.now() - _streamer_birthday
-        response = response.replace('$birthday', self.streamer_birthday)
-        response = response.replace('$age', str(_streamer_age.days // 365))
-        response = response.replace('$year', str(_streamer_birthday.year))
+        if self.streamer_birthday is not None:
+            streamer_birthday_obj = datetime.strptime(
+                self.streamer_birthday, '%Y-%m-%d')
+            age = (datetime.now() - streamer_birthday_obj).days // 365
+            response = random.choice(responses).format(
+                age=age, year=streamer_birthday_obj.year, birthday=self.streamer_birthday)
+        else:
+            response = "The streamer is not born yet! [To set the streamer's birth date, just ask me to do so ;)]"
         self.speak(response)
 
+    # ANCHOR set_streamer_birthday()
+    def set_streamer_birthday(self):
+        """
+        This function sets the streamer's birthday based on a date-like string found in the user's
+        request and provides a response confirming the update.
+        """
+        # Find date-like strings in the user request using a regex pattern
+        date_pattern = r"\d{4}-\d{2}-\d{2}|\d{2}/\d{2}/\d{4}|\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* \d{1,2},? \d{4}\b"
+        matches = re.findall(date_pattern, self.user_request)
+        # Extract valid dates using the dateutil parser
+        dates = [parse(match).date()
+                 for match in matches if self.is_date(match)]
 
+        if dates:
+            # Set the birthday to the first valid date found
+            self.streamer_birthday = dates[0].strftime('%Y-%m-%d')
+
+            # List of possible responses, using f-strings to interpolate values
+            responses = [
+                f"Sure, the streamer's birth date has been set to {self.streamer_birthday}.",
+                f"Noted, the streamer's birth date is now {self.streamer_birthday}.",
+                f"Done, the streamer's birth date has been updated to {self.streamer_birthday}.",
+                f"Great, the streamer was born on {self.streamer_birthday}."
+            ]
+
+            # Use random.choice() to select a response from the list
+            self.speak(random.choice(responses))
+        else:
+            self.speak("Sorry, I didn't understand the date. Please try again.")
+
+    # ANCHOR is_date()
+    def is_date(self, string):
+        """
+        The function checks if a given string can be parsed as a date and returns True if it can, False
+        otherwise.
+
+        :param string: The string parameter is a string that represents a date in any format. The
+        function is trying to determine whether the string is a valid date or not
+        :return: The function is checking if the input string can be parsed as a date using the `parse`
+        function. If it can be parsed, the function returns `True`, otherwise it returns `False`.
+        """
+        try:
+            parse(string)
+            return True
+        except ValueError:
+            return False
+
+
+# ANCHOR BOT CLASS
 class Bot():
     nova_ai = None
     bot_nickname = None
@@ -206,6 +260,7 @@ class Bot():
         if '!nova' in message:
             user_request = message.replace('!nova', '').strip()
             if user_request is not None:
+                self.nova_ai.update_user_request(user_request)
                 response = self.nova_ai.assistant.request(user_request)
                 if response is not None:
                     self.nova_ai.speak(response)

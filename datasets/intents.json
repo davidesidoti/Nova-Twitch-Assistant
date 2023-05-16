@@ -61,12 +61,12 @@
                 "Who is responsible for your creation?"
             ],
             "responses": [
-                "My creator is Davide Sidoti, a simple guy who enjoys tech stuff!",
-                "I was created by Davide Sidoti, a passionate programmer.",
-                "My maker is Davide Sidoti, a software developer who likes to experiment with AI.",
-                "Davide Sidoti is the one who programmed me.",
-                "I was developed by Davide Sidoti, a curious tech enthusiast.",
-                "I was brought to life by Davide Sidoti, who enjoys exploring the latest technologies."
+                "My creator is @dvhash, a simple guy who enjoys tech stuff!",
+                "I was created by @dvhash, a passionate programmer.",
+                "My maker is @dvhash, a software developer who likes to experiment with AI.",
+                "@dvhash is the one who programmed me.",
+                "I was developed by @dvhash, a curious tech enthusiast.",
+                "I was brought to life by @dvhash, who enjoys exploring the latest technologies."
             ]
         },
         {
@@ -125,7 +125,9 @@
                 "What's the temperature today?",
                 "Do I need an umbrella today?",
                 "Is it cold outside?",
-                "What's the forecast for the week?"
+                "What's the forecast for the week?",
+                "How is the weather at the streamer's location?",
+                "Is it cold at the streamer's position now?"
             ],
             "responses": []
         },
@@ -151,6 +153,15 @@
                 "Is the streamer young or old?",
                 "How many years does the streamer have?",
                 "What's the streamer's birth year?"
+            ],
+            "responses": []
+        },
+        {
+            "tag": "set_streamer_birthday",
+            "patterns": [
+                "Update the streamer's birth day to [DATE]",
+                "Set the streamer's birth date to [DATE]",
+                "The streamer's birthday is [DATE]"
             ],
             "responses": []
         }
